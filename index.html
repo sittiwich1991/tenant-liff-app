@@ -12,7 +12,7 @@
 <body>
     <header>
         <!-- ใส่ URL ของโลโก้ของคุณ -->
-        <img src="URL_TO_YOUR_LOGO" alt="Logo" class="logo">
+        <img src="https://github.com/sittiwich1991/tenant-liff-app/blob/main/17199148_10208465593013140_1561051857_n.jpg?raw=true" alt="Logo" class="logo">
     </header>
 
     <div class="container">
@@ -38,6 +38,11 @@
                 <option value="Room108">Room108</option>
                 <option value="Room109">Room109</option>
                 <option value="Room110">Room110</option>
+                <option value="Room111">บ้าน11</option>
+                <option value="Room112">บ้าน12</option>
+                <option value="Room113">บ้าน13</option>
+                <option value="Room114">บ้าน14</option>
+                <option value="Room115">บ้าน15</option>
             </select>
 
             <label for="name">ชื่อ:</label>
@@ -57,7 +62,7 @@
     <script>
         async function initLiff() {
             // ใส่ LIFF ID ของคุณ
-            const liffId = "YOUR_LIFF_ID";
+            const liffId = "2008015171-1Mvxr59A";
 
             // Show loading SweetAlert
             Swal.fire({
@@ -80,7 +85,7 @@
                 document.getElementById('profile').style.display = 'block';
 
                 // ตรวจสอบว่าผู้ใช้ลงทะเบียนหรือยัง
-                fetch('YOUR_API_URL?action=getTenantInfo&userId=' + userId)
+                fetch('https://script.google.com/macros/s/AKfycbxzL86LvsfQsXxjak5D6bA7iNcjhS5ZacTxzycTt_6z-2C_UztuLOGftsTN3i4dgpL8mg/exec?action=getTenantInfo&userId=' + userId)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -104,7 +109,7 @@
 
         // ฟังก์ชันดึงห้องที่ลงทะเบียนแล้ว
         function fetchRegisteredRooms() {
-            fetch('YOUR_API_URL?action=getRegisteredRooms')
+            fetch('https://script.google.com/macros/s/AKfycbxzL86LvsfQsXxjak5D6bA7iNcjhS5ZacTxzycTt_6z-2C_UztuLOGftsTN3i4dgpL8mg/exec?action=getRegisteredRooms')
             .then(response => response.json())
             .then(registeredRooms => {
                 const roomSelect = document.getElementById('room');
@@ -132,7 +137,7 @@
             const formObj = {};
             formData.forEach((value, key) => formObj[key] = value);
 
-            fetch('YOUR_API_URL?action=registerTenant', {
+            fetch('https://script.google.com/macros/s/AKfycbxzL86LvsfQsXxjak5D6bA7iNcjhS5ZacTxzycTt_6z-2C_UztuLOGftsTN3i4dgpL8mg/exec?action=registerTenant', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
