@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงทะเบียนผู้เช่า</title>
+    <script src=" https://static.line-scdn.net/liff/edge/versions/2.25.1/sdk.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body>
+    <header>
+        <!-- ใส่ URL ของโลโก้ของคุณ -->
+        <img src="URL_TO_YOUR_LOGO" alt="Logo" class="logo">
+    </header>
+
+    <div class="container">
+        <h1>ลงทะเบียนผู้เช่า</h1>
+
+        <!-- แสดงข้อมูลโปรไฟล์ -->
+        <div id="profile" style="display: none; text-align: center;">
+            <img id="profileImage" src="" alt="Profile Image" style="border-radius: 50%; width: 100px; height: 100px;">
+            <p id="displayName"></p>
+        </div>
+
+        <form id="tenantForm">
+            <label for="room">ห้อง:</label>
+            <select id="room" name="room" required>
+                <option value="">เลือกห้อง</option>
+                <option value="Room101">Room101</option>
+                <option value="Room102">Room102</option>
+                <option value="Room103">Room103</option>
+                <option value="Room104">Room104</option>
+                <option value="Room105">Room105</option>
+                <option value="Room106">Room106</option>
+                <option value="Room107">Room107</option>
+                <option value="Room108">Room108</option>
+                <option value="Room109">Room109</option>
+                <option value="Room110">Room110</option>
+            </select>
+
+            <label for="name">ชื่อ:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="phone">เบอร์โทร:</label>
+            <input type="tel" id="phone" name="phone" required>
+
+            <input type="hidden" id="userId" name="userId">
+            <input type="hidden" id="profileImageUrl" name="profileImageUrl">
+
+            <button type="submit">ลงทะเบียน</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        async function initLiff() {
+            // ใส่ LIFF ID ของคุณ
+            const liffId = "YOUR_LIFF_ID";
+
+            // Show loading SweetAlert
+            Swal.fire({
+                title: 'กำลังโหลด...',
+                text: 'กรุณารอสักครู่',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            await liff.init({ liffId: liffId });
+            if (liff.isLoggedIn()) {
+                const profile = await liff.getProfile();
+                const userId = profile.userId;
+                document.getElementById('userId').value = userId;
+                document.getElementById('profileImage').src = profile.pictureUrl;
+                document.getElementById('displayName').textContent = profile.displayName;
+                document.getElementById('profileImageUrl').value = profile.pictureUrl;
+                document.getElementById('profile').style.display = 'block';
+
+                // ตรวจสอบว่าผู้ใช้ลงทะเบียนหรือยัง
+                fetch('YOUR_API_URL?action=getTenantInfo&userId=' + userId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // ผู้ใช้ลงทะเบียนแล้ว ให้เปลี่ยนไปหน้า info.html
+                        window.location.href = 'info.html';
+                    } else {
+                        Swal.close();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.close();
+                });
+            } else {
+                liff.login();
+                Swal.close();
+            }
+        }
+
+        initLiff();
+
+        // ฟังก์ชันดึงห้องที่ลงทะเบียนแล้ว
+        function fetchRegisteredRooms() {
+            fetch('YOUR_API_URL?action=getRegisteredRooms')
+            .then(response => response.json())
+            .then(registeredRooms => {
+                const roomSelect = document.getElementById('room');
+                Array.from(roomSelect.options).forEach(option => {
+                    option.disabled = false;
+                });
+                registeredRooms.forEach(room => {
+                    const option = roomSelect.querySelector(`option[value="${room}"]`);
+                    if (option) {
+                        option.disabled = true;
+                    }
+                });
+                Swal.close();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.close();
+            });
+        }
+
+        document.getElementById('tenantForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const formObj = {};
+            formData.forEach((value, key) => formObj[key] = value);
+
+            fetch('YOUR_API_URL?action=registerTenant', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(formObj)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'สำเร็จ!',
+                        text: 'ลงทะเบียนสำเร็จ!',
+                        icon: 'success',
+                        confirmButtonText: 'ตกลง'
+                    }).then(() => {
+                        document.getElementById('tenantForm').reset();
+                        fetchRegisteredRooms();
+                        window.location.href = 'info.html';
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'ผิดพลาด!',
+                        text: 'ห้องนี้มีการลงทะเบียนแล้ว',
+                        icon: 'error',
+                        confirmButtonText: 'ตกลง'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        // ดึงห้องที่ลงทะเบียนแล้วเมื่อโหลดเพจ
+        fetchRegisteredRooms();
+    </script>
+</body>
+</html>

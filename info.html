@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ข้อมูลผู้เช่า</title>
+    <script src=" https://static.line-scdn.net/liff/edge/versions/2.25.1/sdk.js"></script>
+    <link rel="stylesheet" href="info.css">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body>
+    <header>
+        <h1>ข้อมูลผู้เช่า</h1>
+    </header>
+
+    <!-- Profile Section -->
+    <div id="profile" style="display: none;">
+        <h2>ห้อง: <span id="room"></span></h2>
+        <img id="profileImage" src="" alt="Profile Image" style="border-radius: 50%; width: 100px; height: 100px;">
+        <p id="displayName"></p>
+        <p id="phone"></p>
+    </div>
+
+    <!-- Section to display invoice information -->
+    <div id="invoiceInfo" style="display: none;">
+        <h3>ข้อมูลใบแจ้งหนี้</h3>
+        <div id="invoiceCardsContainer" class="invoice-cards-container"></div>
+    </div>
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        async function initLiff() {
+            // Show loading SweetAlert
+            Swal.fire({
+                title: 'กำลังโหลด...',
+                text: 'กรุณารอสักครู่',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            await liff.init({ liffId: "YOUR_LIFF_ID_HERE" }); // Replace YOUR_LIFF_ID_HERE with your actual LIFF ID
+            if (liff.isLoggedIn()) {
+                const profile = await liff.getProfile();
+                const userId = profile.userId;
+
+                // Fetch tenant info
+                fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec?action=getTenantInfo&userId=' + userId) // Replace YOUR_SCRIPT_ID_HERE with your actual Script ID
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Display profile info
+                        document.getElementById('profileImage').src = data.profileImageUrl;
+                        document.getElementById('displayName').textContent = "ชื่อ: " + data.name;
+                        document.getElementById('room').textContent = data.room;
+                        document.getElementById('phone').textContent = "เบอร์โทร: " + data.phone;
+                        document.getElementById('profile').style.display = 'block';
+
+                        // Fetch and display invoice data
+                        fetchInvoiceData(userId);
+
+                        // Close the loading SweetAlert
+                        Swal.close();
+                    } else {
+                        Swal.close();
+                        window.location.href = 'index.html';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.close();
+                    window.location.href = 'index.html';
+                });
+            } else {
+                liff.login();
+                Swal.close();
+            }
+        }
+
+        // Fetch invoice data based on userId
+        function fetchInvoiceData(userId) {
+            fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec?action=getInvoiceData&userId=' + userId) // Replace YOUR_SCRIPT_ID_HERE with your actual Script ID
+            .then(response => response.json())
+            .then(invoiceData => {
+                if (invoiceData.success) {
+                    const cardsContainer = document.getElementById('invoiceCardsContainer');
+                    cardsContainer.innerHTML = ''; // Clear previous cards
+
+                    // Sort invoices by billingMonth in descending order (from latest to oldest)
+                    invoiceData.invoices.sort((a, b) => {
+                        const [monthA, yearA] = a.billingMonth.split('/').map(Number);
+                        const [monthB, yearB] = b.billingMonth.split('/').map(Number);
+                        if (yearA !== yearB) {
+                            return yearB - yearA;
+                        }
+                        return monthB - monthA;
+                    });
+
+                    invoiceData.invoices.forEach(invoice => {
+                        const card = document.createElement('div');
+                        card.className = 'invoiceCard';
+
+                        // Apply color based on status
+                        let statusText = '';
+                        if (invoice.status === 'รอการชำระ') {
+                            statusText = `สถานะ: <span style="color: orange;">${invoice.status}</span>`;
+                        } else if (invoice.status === 'ชำระแล้ว') {
+                            statusText = `สถานะ: <span style="color: green;">${invoice.status}</span>`;
+                        } else {
+                            statusText = `สถานะ: ${invoice.status}`;
+                        }
+
+                        card.innerHTML = `
+                            <h4>ประจำเดือนที่: ${invoice.billingMonth}</h4>
+                            <p>ค่าเช่า: ${invoice.rent}</p>
+                            <p>ค่าไฟ: ${invoice.electricityCost}</p>
+                            <p>ค่าน้ำ: ${invoice.waterCost}</p>
+                            <p>ค่าส่วนกลาง: ${invoice.commonAreaFee}</p>
+                            <p>ค่าอินเทอร์เน็ต: ${invoice.internetFee}</p>
+                            <p>อื่นๆ: ${invoice.otherCosts}</p>
+                            <p>ยอดรวม: ${invoice.totalAmount}</p>
+                            <p>${statusText}</p>
+                        `;
+
+                        cardsContainer.appendChild(card);
+                    });
+                    document.getElementById('invoiceInfo').style.display = 'block';
+                } else {
+                    console.log("No invoice data available");
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching invoice data:', error);
+            });
+        }
+
+        initLiff();
+    </script>
+</body>
+</html>
