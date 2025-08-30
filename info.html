@@ -42,13 +42,13 @@
                 }
             });
 
-            await liff.init({ liffId: "YOUR_LIFF_ID_HERE" }); // Replace YOUR_LIFF_ID_HERE with your actual LIFF ID
+            await liff.init({ liffId: "2008015171-1Mvxr59A" }); // Replace YOUR_LIFF_ID_HERE with your actual LIFF ID
             if (liff.isLoggedIn()) {
                 const profile = await liff.getProfile();
                 const userId = profile.userId;
 
                 // Fetch tenant info
-                fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec?action=getTenantInfo&userId=' + userId) // Replace YOUR_SCRIPT_ID_HERE with your actual Script ID
+                fetch('https://script.google.com/macros/s/AKfycbxzL86LvsfQsXxjak5D6bA7iNcjhS5ZacTxzycTt_6z-2C_UztuLOGftsTN3i4dgpL8mg/exec?action=getTenantInfo&userId=' + userId) // Replace YOUR_SCRIPT_ID_HERE with your actual Script ID
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -82,7 +82,7 @@
 
         // Fetch invoice data based on userId
         function fetchInvoiceData(userId) {
-            fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec?action=getInvoiceData&userId=' + userId) // Replace YOUR_SCRIPT_ID_HERE with your actual Script ID
+            fetch('https://script.google.com/macros/s/AKfycbxzL86LvsfQsXxjak5D6bA7iNcjhS5ZacTxzycTt_6z-2C_UztuLOGftsTN3i4dgpL8mg/exec?action=getInvoiceData&userId=' + userId) // Replace YOUR_SCRIPT_ID_HERE with your actual Script ID
             .then(response => response.json())
             .then(invoiceData => {
                 if (invoiceData.success) {
